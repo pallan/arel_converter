@@ -14,13 +14,14 @@ module ArelConverter
   class Converter < Ruby2Ruby
 
     def self.translate(klass_or_str, method = nil)
+      puts "OPENING EXPRESSION: #{klass_or_str}"
       parser    = RubyParser.new
       sexp      = parser.process(klass_or_str)
       self.new.process(sexp)
     end
 
     def logger
-      @logger ||= setup_logger
+      @logger ||= setup_logger(:debug)
     end
 
     def process_hash(exp)
@@ -30,6 +31,7 @@ module ArelConverter
         result.push process_conditions_hash(exp)
         @conditions_hash = false
       else
+        logger.debug("EXPRESSION: #{exp}")
 
         until exp.empty?
           logger.debug("EXPRESSION: #{exp}")
@@ -48,7 +50,7 @@ module ArelConverter
           result.push( hash_to_arel(lhs,rhs) )
         end
       end
-
+      logger.debug("RESULTS: #{result.join('.')}")
       return result.join('.')
     end
 
@@ -56,12 +58,14 @@ module ArelConverter
       case lhs
       when ':conditions'
         key = 'where'
-        rhs = rhs[1...-1]
+        #rhs = rhs[1...-1]
       when ':include'
         key = 'includes'
       else
         key = lhs.sub(':','')
       end
+      logger.debug("KEY: #{key}(#{rhs})")
+
       "#{key}(#{rhs})"
     end
 

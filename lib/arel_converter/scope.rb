@@ -56,8 +56,8 @@ module ArelConverter
 
     def convert_arguments(line)
       options = %Q{#{line.gsub(/^.*?,/, '').strip}}
-      clean_arguments = %Q{{#{options}}} unless options =~ /^\{.*\}$/
-      converted = "-> { #{ArelConverter::Converter.translate(clean_arguments)} }"
+      options = %Q{{#{options}}} unless options =~ /^\{.*\}$/
+      converted = "-> { #{ArelConverter::Converter.translate(options)} }"
       line.gsub(options, converted)
     end
 
