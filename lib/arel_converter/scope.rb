@@ -36,12 +36,13 @@ module ArelConverter
     end
 
     def process_line(line)
-      case
-      when line.include?('lambda')
-        convert_lambda(line)
-      else
-        convert_arguments(line)
-      end
+      ArelConverter::Converter.translate(line)
+      #case
+      #when line.include?('lambda')
+        #convert_lambda(line)
+      #else
+        #convert_arguments(line)
+      #end
     end
 
     def convert_lambda(line)

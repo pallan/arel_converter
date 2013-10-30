@@ -24,41 +24,81 @@ module ArelConverter
       @logger ||= setup_logger(:debug)
     end
 
-    def process_hash(exp)
+    def process_call(exp)
+      logger.debug("CALL: #{exp}")
+      super
+    end
+
+    def process_lit(exp)
+      logger.debug("LITERAL: #{exp}")
+      super
+    end
+
+    def process_hash(exp) # :nodoc:
       result = []
 
-      if @conditions_hash
-        result.push process_conditions_hash(exp)
-        @conditions_hash = false
-      else
-        logger.debug("EXPRESSION: #{exp}")
-
-        until exp.empty?
-          logger.debug("EXPRESSION: #{exp}")
-          lhs = process(exp.shift)
-          rhs = exp.shift
-          t = rhs.first
-
-          @conditions_hash = (lhs == ':conditions' && t == :hash)
-
-          logger.debug("BEFORE => LHS: #{lhs}; RHS: #{rhs}")
-          rhs = process rhs
-          logger.debug("AFTER => LHS: #{lhs}; RHS: #{rhs}")
-
-          rhs = "#{rhs}" unless [:lit, :str].include? t # TODO: verify better!
-
-          result.push( hash_to_arel(lhs,rhs) )
-        end
+      until exp.empty?
+        lhs = process(exp.shift)
+        rhs = exp.shift
+        t = rhs.first
+        logger.debug("HASH-BEFORE => LHS: #{lhs}; t: #{t}; RHS: #{rhs}")
+        rhs =  lhs == ':conditions' && t == :hash ? process_conditions_hash(rhs) : process(rhs)
+        rhs = "(#{rhs})" unless [:lit, :str, :hash, :array].include? t
+        result << hash_to_arel(lhs,rhs) # "#{lhs} => #{rhs}"
       end
-      logger.debug("RESULTS: #{result.join('.')}")
-      return result.join('.')
+
+      return result.empty? ? "{}" : "{ #{result.join(', ')} }"
     end
+
+    def process_conditions_hash(exp) # :nodoc:
+      result = []
+      exp.shift
+      until exp.empty?
+        lhs = process(exp.shift)
+        rhs = exp.shift
+        t = rhs.first
+        rhs = process rhs
+        rhs = "(#{rhs})" unless [:lit, :str].include? t 
+
+        result << "#{lhs.sub(':','')}: #{rhs}"
+      end
+
+      return result.empty? ? "" : " #{result.join(', ')} "
+    end
+
+    #def process_hash(exp)
+      #result = []
+
+      #if @conditions_hash
+        #result.push process_conditions_hash(exp)
+        #@conditions_hash = false
+      #else
+
+        #until exp.empty?
+          #logger.debug("HASH-EXPRESSION: #{exp}")
+          #lhs = process(exp.shift)
+          #rhs = exp.shift
+          #t = rhs.first
+
+          #@conditions_hash = (lhs == ':conditions' && t == :hash)
+
+          #logger.debug("HASH-BEFORE => LHS: #{lhs}; RHS: #{rhs}")
+          #rhs = process rhs
+          #logger.debug("HASH-AFTER => LHS: #{lhs}; RHS: #{rhs}")
+
+          #rhs = "#{rhs}" unless [:lit, :str].include? t # TODO: verify better!
+
+          #result.push( hash_to_arel(lhs,rhs) )
+        #end
+      #end
+      #logger.debug("HASH-RESULTS: #{result.join('.')}")
+      #return result.join('.')
+    #end
 
     def hash_to_arel(lhs, rhs)
       case lhs
       when ':conditions'
         key = 'where'
-        #rhs = rhs[1...-1]
       when ':include'
         key = 'includes'
       else
@@ -70,34 +110,35 @@ module ArelConverter
     end
 
 
-    def process_conditions_hash(exp)
-      result = []
-      until exp.empty?
-        lhs = process(exp.shift)
-        rhs = exp.shift
-        t = rhs.first
-        rhs = process rhs
-        # rhs = "(#{rhs})" unless [:lit, :str, :true, :false].include? t # TODO: verify better!
+    #def process_conditions_hash(exp)
+      #logger.debug("CONDITION-HASH-EXP: #{exp}")
+      #result = []
+      #until exp.empty?
+        #lhs = process(exp.shift)
+        #rhs = exp.shift
+        #t = rhs.first
+        #rhs = process rhs
+        ## rhs = "(#{rhs})" unless [:lit, :str, :true, :false].include? t # TODO: verify better!
 
-        result << "#{lhs.sub(':','')}: #{rhs}"
-      end
+        #result << "#{lhs.sub(':','')}: #{rhs}"
+      #end
 
-      case self.context[1]
-      when :arglist, :argscat then
-        unless result.empty? then
-          # HACK - this will break w/ 2 hashes as args
-          if BINARY.include? @calls.last then
-            return "{#{result.join(', ')}}"
-          else
-            return "#{result.join(', ')}"
-          end
-        else
-          return "{}"
-        end
-      else
-        return "{#{result.join(', ')}}"
-      end
-    end
+      #case self.context[1]
+      #when :arglist, :argscat then
+        #unless result.empty? then
+          ## HACK - this will break w/ 2 hashes as args
+          #if BINARY.include? @calls.last then
+            #return "{#{result.join(', ')}}"
+          #else
+            #return "#{result.join(', ')}"
+          #end
+        #else
+          #return "{}"
+        #end
+      #else
+        #return "{#{result.join(', ')}}"
+      #end
+    #end
 
     private
 
