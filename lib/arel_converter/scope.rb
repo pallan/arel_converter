@@ -20,70 +20,51 @@ module ArelConverter
 
       named_scopes = raw_named_scopes.split("\n")
       new_scopes =  named_scopes.map do |scope|
-        scope = scope.strip.gsub("#{file}:",'')
-        begin
-          [scope, process_line(scope)]
-        rescue SyntaxError => e
-          failures << "SyntaxError when evaluatiing options for #{scope}"
-          nil
-        rescue => e
-          failures << "#{e.class} #{e.message} when evaluatiing options for \"#{scope}\""
-          nil
-        end
-      end.compact
+                      scope = scope.gsub("#{file}:",'').strip
+                      next unless verify_line(line)
+                      begin
+                        [scope, process_line(scope)]
+                      rescue SyntaxError => e
+                        failures << "SyntaxError when evaluatiing options for #{scope}"
+                        nil
+                      rescue => e
+                        failures << "#{e.class} #{e.message} when evaluatiing options for \"#{scope}\""
+                        nil
+                      end
+                    end.compact
+
       Formatter.alert(file, new_scopes, failures) unless (new_scopes.nil? || new_scopes.empty?) && failures.empty?
+
+      # update_file(file, new_scopes)
     end
 
     def process_line(line)
-      ArelConverter::Converter.translate(line)
-      #case
-      #when line.include?('lambda')
-        #convert_lambda(line)
-      #else
-        #convert_arguments(line)
-      #end
+      new_scope = ArelConverter::Converter.translate(line)
+      new_scope.gsub(/scope\((.*)\)$/, 'scope \1')
     end
 
-    def convert_lambda(line)
-      full_method, arguments = extract_method(line)
-
-      # if we can't parse out the lambda then raise
-      raise RuntimeError, "can't parse due to unmatched braces" if full_method.nil?
-
-      clean_arguments = arguments.gsub(/\|.*?\|/, '').strip
-      line.gsub(clean_arguments, ArelConverter::Converter.translate(clean_arguments))
-    end
-
-    def convert_arguments(line)
-      options = %Q{#{line.gsub(/^.*?,/, '').strip}}
-      options = %Q{{#{options}}} unless options =~ /^\{.*\}$/
-      converted = "-> { #{ArelConverter::Converter.translate(options)} }"
-      line.gsub(options, converted)
-    end
-
-    def extract_method(line)
-      i = line.index('lambda')
-      braces = 0
-      full_method = ''
-      args = ''
-
-      while i < line.length
-        char = line[i].chr
-        full_method << char
-        args << char if braces > 0
-        case char
-        when '{'
-          braces += 1
-        when '}'
-          braces -= 1
-          if braces == 0
-            args.chop!
-            break
-          end
+    def update_file(file, new_scopes)
+      new_lines = []
+      f = File.new(file)
+      f.each do |line|
+        new_scopes.each do |scope|
+          line.gsub!(scope[0], scope[1]) if line.include?(scope[0])
         end
-        i += 1
+        new_lines << line.chomp
       end
-      braces == 0 ? [full_method, args] : [nil,nil]
+      f.close
+
+      File.open(file, 'w') do |f|
+        f.puts new_lines.join("\n")
+      end
+    end
+
+  protected
+
+    def verify_line(line)
+      parser = RubyParser.new
+      sexp   = parser.process(line)
+      sexp.shift == :call
     end
 
   end
