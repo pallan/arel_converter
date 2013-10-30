@@ -13,87 +13,39 @@ require File.join('arel_converter', 'scope')
 module ArelConverter
   class Converter < Ruby2Ruby
 
+    LINE_LENGTH = 1_000
+
     def self.translate(klass_or_str, method = nil)
-      puts "OPENING EXPRESSION: #{klass_or_str}"
+      # puts "OPENING EXPRESSION: #{klass_or_str}"
       parser    = RubyParser.new
       sexp      = parser.process(klass_or_str)
       self.new.process(sexp)
     end
 
     def logger
-      @logger ||= setup_logger(:debug)
-    end
-
-    def process_call(exp)
-      logger.debug("CALL: #{exp}")
-      super
-    end
-
-    def process_lit(exp)
-      logger.debug("LITERAL: #{exp}")
-      super
+      @logger ||= setup_logger
     end
 
     def process_hash(exp) # :nodoc:
+      @depth ||= 0
+      @depth += 1
+
       result = []
 
       until exp.empty?
         lhs = process(exp.shift)
-        rhs = exp.shift
-        t = rhs.first
-        logger.debug("HASH-BEFORE => LHS: #{lhs}; t: #{t}; RHS: #{rhs}")
-        rhs =  lhs == ':conditions' && t == :hash ? process_conditions_hash(rhs) : process(rhs)
-        rhs = "(#{rhs})" unless [:lit, :str, :hash, :array].include? t
-        result << hash_to_arel(lhs,rhs) # "#{lhs} => #{rhs}"
+        rhs = process(exp.shift)
+        result << (@depth > 1 ? "#{lhs.sub(':','')}: #{rhs}" : hash_to_arel(lhs,rhs))
       end
 
-      return result.empty? ? "{}" : "{ #{result.join(', ')} }"
-    end
+      @depth -= 1
 
-    def process_conditions_hash(exp) # :nodoc:
-      result = []
-      exp.shift
-      until exp.empty?
-        lhs = process(exp.shift)
-        rhs = exp.shift
-        t = rhs.first
-        rhs = process rhs
-        rhs = "(#{rhs})" unless [:lit, :str].include? t 
-
-        result << "#{lhs.sub(':','')}: #{rhs}"
+      if @depth > 0
+        result.empty? ? "" : " #{result.join(', ')} "
+      else
+        result.empty? ? "" : "  #{result.join('.')}  "
       end
-
-      return result.empty? ? "" : " #{result.join(', ')} "
     end
-
-    #def process_hash(exp)
-      #result = []
-
-      #if @conditions_hash
-        #result.push process_conditions_hash(exp)
-        #@conditions_hash = false
-      #else
-
-        #until exp.empty?
-          #logger.debug("HASH-EXPRESSION: #{exp}")
-          #lhs = process(exp.shift)
-          #rhs = exp.shift
-          #t = rhs.first
-
-          #@conditions_hash = (lhs == ':conditions' && t == :hash)
-
-          #logger.debug("HASH-BEFORE => LHS: #{lhs}; RHS: #{rhs}")
-          #rhs = process rhs
-          #logger.debug("HASH-AFTER => LHS: #{lhs}; RHS: #{rhs}")
-
-          #rhs = "#{rhs}" unless [:lit, :str].include? t # TODO: verify better!
-
-          #result.push( hash_to_arel(lhs,rhs) )
-        #end
-      #end
-      #logger.debug("HASH-RESULTS: #{result.join('.')}")
-      #return result.join('.')
-    #end
 
     def hash_to_arel(lhs, rhs)
       case lhs
@@ -109,38 +61,56 @@ module ArelConverter
       "#{key}(#{rhs})"
     end
 
+    # Have to override super class to get the overridden LINE_LENGTH
+    # constant to work
+    def process_iter(exp) # :nodoc:
+      iter = process exp.shift
+      args = exp.shift
+      body = exp.empty? ? nil : process(exp.shift)
 
-    #def process_conditions_hash(exp)
-      #logger.debug("CONDITION-HASH-EXP: #{exp}")
-      #result = []
-      #until exp.empty?
-        #lhs = process(exp.shift)
-        #rhs = exp.shift
-        #t = rhs.first
-        #rhs = process rhs
-        ## rhs = "(#{rhs})" unless [:lit, :str, :true, :false].include? t # TODO: verify better!
+      args = case args
+             when 0 then
+               " ||"
+             else
+               a = process(args)[1..-2]
+               a = " |#{a}|" unless a.empty?
+               a
+             end
 
-        #result << "#{lhs.sub(':','')}: #{rhs}"
-      #end
+      b, e = if iter == "END" then
+               [ "{", "}" ]
+             else
+               [ "do", "end" ]
+             end
 
-      #case self.context[1]
-      #when :arglist, :argscat then
-        #unless result.empty? then
-          ## HACK - this will break w/ 2 hashes as args
-          #if BINARY.include? @calls.last then
-            #return "{#{result.join(', ')}}"
-          #else
-            #return "#{result.join(', ')}"
-          #end
-        #else
-          #return "{}"
-        #end
-      #else
-        #return "{#{result.join(', ')}}"
-      #end
-    #end
+      iter.sub!(/\(\)$/, '')
 
-    private
+      # REFACTOR: ugh
+      result = []
+      result << "#{iter} {"
+      result << args
+      if body then
+        result << " #{body.strip} "
+      else
+        result << ' '
+      end
+      result << "}"
+      result = result.join
+      return result if result !~ /\n/ and result.size < LINE_LENGTH
+
+      result = []
+      result << "#{iter} #{b}"
+      result << args
+      result << "\n"
+      if body then
+        result << indent(body.strip)
+        result << "\n"
+      end
+      result << e
+      result.join
+    end
+
+  private
 
     def setup_logger(log_level = :info)
       logging = Logging::Logger[self]

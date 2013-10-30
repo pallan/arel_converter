@@ -8,7 +8,46 @@ describe ArelConverter::Scope do
       @converter = ArelConverter::Scope.new('/tmp')
     end
 
-    context 'with conditions to where' do
+    context 'with joins' do
+      it 'when it is a simple association' do
+        scope = %Q{scope :my_scope, :joins => :roles}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, joins(:roles))})
+      end
+
+      it 'when it is an array of simple associations' do
+        scope = %Q{scope :my_scope, :joins => [:roles, :users]}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, joins([:roles, :users]))})
+      end
+
+      it 'when it is a SQL fragment' do
+        scope = %Q{scope :my_scope, :joins => "LEFT JOIN `roles` ON roles.scope_id = scopes.id"}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, joins("LEFT JOIN `roles` ON roles.scope_id = scopes.id"))})
+      end
+
+      it 'when it is a hash of associations' do
+        scope = %Q{scope :my_scope, :joins => {:roles => :users}}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, joins( roles: :users ))})
+      end
+    end
+
+    context 'with includes' do
+      it 'when it is a simple association' do
+        scope = %Q{scope :my_scope, :include => :roles}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, includes(:roles))})
+      end
+
+      it 'when it is an array of simple associations' do
+        scope = %Q{scope :my_scope, :include => [:roles, :users]}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, includes([:roles, :users]))})
+      end
+
+      it 'when it is a hash of associations' do
+        scope = %Q{scope :my_scope, :include => {:roles => :users}}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, includes( roles: :users ))})
+      end
+    end
+
+    context 'with conditions' do
       it 'when they are a string' do
         scope = %Q{scope :my_scope, :conditions => "active = 1"}
         expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, where("active = 1"))})
@@ -28,17 +67,32 @@ describe ArelConverter::Scope do
         scope = %Q{scope :my_scope, :conditions => {:active => 1, :name => 'John'}}
         expect(@converter.process_line(scope)).to eq(%Q{scope(:my_scope, where( active: 1, name: "John" ))})
       end
+
+      it 'where there is a hash including an array' do
+        scope = %Q{scope :receivable, :conditions => {:state => ['confirmed', 'partially_received', 'ordered']}}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:receivable, where( state: ["confirmed", "partially_received", "ordered"] ))})
+      end
+
+      it 'where there is a where and include' do
+        scope = %Q{scope :with_open, :include => :purchase_order, :conditions => ["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"]}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:with_open, includes(:purchase_order).where(["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"]))})
+      end
     end
 
-    #it "work with join scopes" do
-      #scope = %Q{scope :outstanding, {:joins => "LEFT JOIN goods_receipts ON goods_receipts.vendor_purchase_order_line_item_id=purchase_order_line_items.id", :group => 'purchase_order_line_items.id HAVING (SUM(goods_receipts.amount_received) < purchase_order_line_items.quantity OR ISNULL(SUM(goods_receipts.amount_received))) AND purchase_order_line_items.quantity != 0'}}
-      #expect(@converter.process_line(scope)).to eq(%Q{scope :outstanding, -> { joins("LEFT JOIN goods_receipts ON goods_receipts.vendor_purchase_order_line_item_id=purchase_order_line_items.id").group("purchase_order_line_items.id HAVING (SUM(goods_receipts.amount_received) < purchase_order_line_items.quantity OR ISNULL(SUM(goods_receipts.amount_received))) AND purchase_order_line_items.quantity != 0") }})
-    #end
+    context "with lambdas" do
+      it 'should stay on a single line' do
+        scope = %Q{scope :for_vendor, lambda{|vendor| {:include => :vendor_purchase_order, :conditions => ["purchase_orders.vendor_id = ?", vendor.id]}}}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:for_vendor, lambda { |vendor| includes(:vendor_purchase_order).where(["purchase_orders.vendor_id = ?", vendor.id]) })})
+      end
+    end
 
-    #it 'should handle scopes followed by a comment' do
-      #scope = %Q{scope :active, :conditions => "global_state_cache = 'active'" # FIXME: this one is dangerous (dvd, 09-07-2010)}
-      #expect(@converter.process_line(scope)).to eq(%Q{scope :active, -> { where("global_state_cache = 'active'") } # FIXME: this one is dangerous (dvd, 09-07-2010) })
-    #end
+    context "with multiple options" do
+      it 'should concatinate them correctly' do
+        scope = %Q{scope :receivable, {:include => [:vendor], :conditions => "state IN ('confirmed','partially_received')"}}
+        expect(@converter.process_line(scope)).to eq(%Q{scope(:receivable, includes([:vendor]).where("state IN ('confirmed','partially_received')"))})
+      end
+    end
+
   end
 
 end

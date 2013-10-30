@@ -3,7 +3,6 @@ module ArelConverter
 
     def run
       Dir[File.join(@path, 'app/models/**/*')].each do |file|
-        #['/Users/pallan/Programming/rails_apps/panda/core/app/models/vendor_purchase_order.rb'].each do |file|
         begin
           parse_file(file)
         rescue => e
