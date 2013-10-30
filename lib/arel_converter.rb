@@ -41,7 +41,7 @@ module ArelConverter
       @depth -= 1
 
       if @depth > 0
-        result.empty? ? "{}" : "{ #{result.join(', ')} }"
+        result.empty? ? "{}" : " #{result.join(', ')} "
       else
         result.empty? ? "" : "  #{result.join('.')}  "
       end
