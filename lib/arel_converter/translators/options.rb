@@ -7,7 +7,7 @@ module ArelConverter
       def self.translate(klass_or_str, method = nil)
         # puts "OPENING EXPRESSION: #{klass_or_str}"
         sexp = klass_or_str.is_a?(String) ? self.parse(klass_or_str) : klass_or_str
-        self.new.process(sexp).strip
+        self.new.process(sexp)
       end
 
       def self.parse(code)
