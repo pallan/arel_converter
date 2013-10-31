@@ -36,7 +36,7 @@ module ArelConverter
         puts "#{CYAN}#{BOLD}  - #{error}#{CLEAR}"
       end
       Array(culprits).each do |c|
-        puts c.is_a?(Array) ? "#{YELLOW}  FROM: #{c[0]}\n    TO: #{c[1]}" : "#{YELLOW}\t#{c[0]}"
+        puts c.is_a?(Array) ? "#{YELLOW}FROM: #{c[0]}\n  TO: #{c[1]}\n---" : "#{YELLOW}  #{c[0]}\n---"
       end
     ensure
       puts "#{CLEAR}"

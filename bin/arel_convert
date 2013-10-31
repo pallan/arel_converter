@@ -4,6 +4,6 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'arel_converter'
 
-converter = ArelConverter::Scope.new(ARGV.first)
+converter = ArelConverter::ActiveRecordFinder.new(ARGV.first)
 converter.run
 

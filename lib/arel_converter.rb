@@ -13,6 +13,7 @@ require File.join('arel_converter', 'scope')
 # Translators
 require File.join('arel_converter', 'translators', 'options')
 require File.join('arel_converter', 'translators', 'scope')
+require File.join('arel_converter', 'translators', 'finder')
 
 module ArelConverter
 
