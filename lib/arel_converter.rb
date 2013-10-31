@@ -9,6 +9,7 @@ require File.join('arel_converter', 'base')
 require File.join('arel_converter', 'formatter')
 require File.join('arel_converter', 'active_record_finder')
 require File.join('arel_converter', 'scope')
+require File.join('arel_converter', 'association')
 
 # Translators
 require File.join('arel_converter', 'translators', 'options')

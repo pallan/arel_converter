@@ -2,7 +2,7 @@ module ArelConverter
   class Association < Base
 
     def run
-      Dir[File.join(@path, 'app/models/**/*')].each do |file|
+      Dir[File.join(@path, 'app/models/**/*.rb')].each do |file|
         begin
           parse_file(file)
         rescue => e
@@ -12,7 +12,7 @@ module ArelConverter
     end
 
     def parse_file(file)
-      raw = `grep -H -r "^\s*has_(many|one)" #{file}`
+      raw = `grep -r "^\s*has_" #{file}`
 
       return if raw == ''
 
@@ -21,7 +21,8 @@ module ArelConverter
       matches = raw.split("\n")
       replacements =  matches.map do |match|
                         match = match.gsub("#{file}:",'').strip
-                        next unless verify_line(line)
+                        puts match
+                        next unless verify_line(match)
                         begin
                           [match, process_line(match)]
                         rescue SyntaxError => e
@@ -33,15 +34,13 @@ module ArelConverter
                         end
                       end.compact
 
-      Formatter.alert(file, new_matches, failures) unless (new_matches.nil? || new_matches.empty?) && failures.empty?
+      Formatter.alert(file, replacements, failures) unless (replacements.nil? || replacements.empty?) && failures.empty?
 
       # update_file(file, new_matches)
     end
 
     def process_line(line)
-      new_match = ArelConverter::Translator::Association.translate(line)
-      puts new_match
-      new_match.gsub(/has_many\((.*)\)$/, 'has_many \1')
+      ArelConverter::Translator::Association.translate(line)
     end
 
     def update_file(file, new_matches)
