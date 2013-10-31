@@ -39,7 +39,7 @@ module ArelConverter
     end
 
     def process_line(line)
-      new_scope = ArelConverter::Converter.translate(line)
+      new_scope = ArelConverter::Translator::Options.translate(line)
       new_scope.gsub(/scope\((.*)\)$/, 'scope \1')
     end
 
