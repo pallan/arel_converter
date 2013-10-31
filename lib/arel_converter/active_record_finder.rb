@@ -2,7 +2,7 @@ module ArelConverter
   class ActiveRecordFinder < Base
 
     def run
-      Dir[File.join(@path, 'app/models/**/*.rb')].each do |file|
+      Dir[File.join(@path, 'app/**/*.rb')].each do |file|
         begin
           parse_file(file) unless File.directory?(file)
         rescue => e
