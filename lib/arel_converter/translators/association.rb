@@ -21,11 +21,9 @@ module ArelConverter
           new_scopes  = [:hash]
           old_options.each_slice(2) do |key,value|
             if option_nodes.include?(key)
-              new_options << key
-              new_options << value
+              new_options += [key, value]
             else
-              new_scopes << key
-              new_scopes << value
+              new_scopes += [key, value]
             end
           end
           @scopes  = Options.translate(Sexp.from_array(new_scopes)).strip if exp[1] == :has_many
