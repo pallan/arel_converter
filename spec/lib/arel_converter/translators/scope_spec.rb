@@ -41,6 +41,11 @@ describe ArelConverter::Translator::Scope do
         scope = %Q{scope :my_scope, :include => {:roles => :users}}
         expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, -> { includes( roles: :users ) }})
       end
+
+      it 'when there is a nested hash of associations' do
+        scope = %Q{scope :my_scope, :include => [:author => {:roles => :users}]}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, -> { includes([ author: { roles: :users } ]) }})
+      end
     end
 
     context 'with conditions' do
@@ -73,12 +78,22 @@ describe ArelConverter::Translator::Scope do
         scope = %Q{scope :my_scope, :include => :purchase_order, :conditions => ["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"]}
         expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, -> { includes(:purchase_order).where(["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"]) }})
       end
+
+      it 'where there is a hash with string keys' do
+        scope = %Q{scope :my_scope, :conditions => {'products.generic' => true}}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, -> { where( "products.generic" => true ) }})
+      end
     end
 
     context "with lambdas" do
       it 'should stay on a single line' do
         scope = %Q{scope :my_scope, lambda{|vendor| {:include => :vendor_purchase_order, :conditions => ["purchase_orders.vendor_id = ?", vendor.id]}}}
         expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, lambda { |vendor| includes(:vendor_purchase_order).where(["purchase_orders.vendor_id = ?", vendor.id]) }})
+      end
+
+      it 'should parse when a conditional is present' do
+        scope = %Q{scope :my_scope, lambda{|search_term| {:conditions => ["posts.name LIKE ?", "%\#{search_term}%"]} unless search_term.blank? }}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, lambda { |search_term| where(["posts.name LIKE ?", "%\#{search_term}%"]) unless search_term.blank? }})
       end
     end
 
