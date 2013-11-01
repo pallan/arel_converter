@@ -1,18 +1,8 @@
 module ArelConverter
   module Translator
-    class Options < Ruby2Ruby
+    class Options < Base
 
       LINE_LENGTH = 1_000
-
-      def self.translate(klass_or_str, method = nil)
-        # puts "OPENING EXPRESSION: #{klass_or_str}"
-        sexp = klass_or_str.is_a?(String) ? self.parse(klass_or_str) : klass_or_str
-        self.new.process(sexp)
-      end
-
-      def self.parse(code)
-        RubyParser.new.process(code)
-      end
 
       def logger
         @logger ||= setup_logger
