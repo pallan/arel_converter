@@ -10,12 +10,12 @@ describe ArelConverter::Translator::Finder do
 
     it 'as a model method' do
       finder = %Q{MyModel.all(:joins => [:payment_method], :conditions => ["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])}
-      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{MyModel.joins([:payment_method]).where(["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])})
+      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{MyModel.joins(:payment_method).where("payment_methodable_type = 'ChequePaymentMethod' AND amount > 0")})
     end
 
     it 'as a chained method' do
       finder = %Q{self.payments.all(:joins => [:payment_method], :conditions => ["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])}
-      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{self.payments.joins([:payment_method]).where(["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])})
+      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{self.payments.joins(:payment_method).where("payment_methodable_type = 'ChequePaymentMethod' AND amount > 0")})
     end
   end
 
@@ -27,12 +27,12 @@ describe ArelConverter::Translator::Finder do
 
     it 'as a model method' do
       finder = %Q{MyModel.first(:joins => [:payment_method], :conditions => ["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])}
-      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{MyModel.joins([:payment_method]).where(["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"]).first})
+      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{MyModel.joins(:payment_method).where("payment_methodable_type = 'ChequePaymentMethod' AND amount > 0").first})
     end
 
     it 'as a chained method' do
       finder = %Q{self.payments.first(:joins => [:payment_method], :conditions => ["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])}
-      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{self.payments.joins([:payment_method]).where(["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"]).first})
+      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{self.payments.joins(:payment_method).where("payment_methodable_type = 'ChequePaymentMethod' AND amount > 0").first})
     end
   end
 

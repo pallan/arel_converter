@@ -22,7 +22,7 @@ describe ArelConverter::Translator::Options do
 
         it 'when it is an array of simple associations' do
           scope = %Q{{:joins => [:roles, :users]}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{joins([:roles, :users])})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{joins(:roles, :users)})
         end
 
         it 'when it is a SQL fragment' do
@@ -44,7 +44,7 @@ describe ArelConverter::Translator::Options do
 
         it 'when it is an array of simple associations' do
           scope = %Q{{:include => [:roles, :users]}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes([:roles, :users])})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes(:roles, :users)})
         end
 
         it 'when it is a hash of associations' do
@@ -61,7 +61,7 @@ describe ArelConverter::Translator::Options do
 
         it 'when they are an array' do
           scope = %Q{{:conditions => ["active = ?", true]}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{where(["active = ?", true])})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{where("active = ?", true)})
         end
 
         it 'where they are a single hash' do
@@ -81,21 +81,21 @@ describe ArelConverter::Translator::Options do
 
         it 'where there is a where and include' do
           scope = %Q{{:include => :purchase_order, :conditions => ["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"]}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes(:purchase_order).where(["purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')"])})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes(:purchase_order).where("purchase_orders.state NOT IN ('shopping', 'received', 'cancelled', 'closed')")})
         end
       end
 
       context "with lambdas" do
         it 'should stay on a single line' do
           scope = %Q{lambda{|vendor| {:include => :vendor_purchase_order, :conditions => ["purchase_orders.vendor_id = ?", vendor.id]}}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{lambda { |vendor| includes(:vendor_purchase_order).where(["purchase_orders.vendor_id = ?", vendor.id]) }})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{lambda { |vendor| includes(:vendor_purchase_order).where("purchase_orders.vendor_id = ?", vendor.id) }})
         end
       end
 
       context "with multiple options" do
         it 'should concatinate them correctly' do
           scope = %Q{{:include => [:vendor], :conditions => "state IN ('confirmed','partially_received')"}}
-          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes([:vendor]).where("state IN ('confirmed','partially_received')")})
+          expect(ArelConverter::Translator::Options.translate(scope)).to eq(%Q{includes(:vendor).where("state IN ('confirmed','partially_received')")})
         end
       end
     end

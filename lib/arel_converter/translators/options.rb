@@ -25,8 +25,6 @@ module ArelConverter
         case @depth
         when 0
           result.empty? ? "" : result.join('.')
-        when 1
-          result.empty? ? "" : " #{result.join(', ')} "
         else
           result.empty? ? "{}" : "{ #{result.join(', ')} }"
         end
@@ -42,7 +40,7 @@ module ArelConverter
           key = lhs.sub(':','')
         end
         logger.debug("KEY: #{key}(#{rhs})")
-
+        rhs = rhs.gsub(/\A\[(.*)\]\z/, '\1').gsub(/\A\{(.*)\}\z/, '\1')
         "#{key}(#{rhs})"
       end
 

@@ -10,7 +10,7 @@ describe ArelConverter::Translator::Association do
 
     it 'should translate options' do
       finder = %Q{has_one :posts, :conditions => ['posts.active = ?', true]}
-      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_one :posts, -> { where(["posts.active = ?", true]) }})
+      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_one :posts, -> { where("posts.active = ?", true) }})
     end
 
     context 'with options' do
@@ -25,7 +25,7 @@ describe ArelConverter::Translator::Association do
 
         it "such as #{option} with scoping" do
           finder = %Q{has_one :posts, :#{option} => 'Sheet', :conditions => ['posts.active = ?', true]}
-          expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_one :posts, -> { where(["posts.active = ?", true]) }, #{option}: "Sheet"})
+          expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_one :posts, -> { where("posts.active = ?", true) }, #{option}: "Sheet"})
         end
 
       end
@@ -46,7 +46,7 @@ describe ArelConverter::Translator::Association do
 
     it 'should translate options' do
       finder = %Q{has_many :posts, :conditions => ['posts.active = ?', true]}
-      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_many :posts, -> { where(["posts.active = ?", true]) }})
+      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_many :posts, -> { where("posts.active = ?", true) }})
     end
 
     context 'with options' do
@@ -61,7 +61,7 @@ describe ArelConverter::Translator::Association do
 
         it "such as #{option} with scoping" do
           finder = %Q{has_many :posts, :#{option} => 'Sheet', :conditions => ['posts.active = ?', true]}
-          expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_many :posts, -> { where(["posts.active = ?", true]) }, #{option}: "Sheet"})
+          expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_many :posts, -> { where("posts.active = ?", true) }, #{option}: "Sheet"})
         end
 
       end
