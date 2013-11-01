@@ -17,6 +17,6 @@ if command == 'scope' || command == 'all'
 end
 
 if command == 'finder' || command == 'all'
-  puts "\n== Checking Associations"
+  puts "\n== Checking Finders"
   ArelConverter::ActiveRecordFinder.new(ARGV.first).run
 end

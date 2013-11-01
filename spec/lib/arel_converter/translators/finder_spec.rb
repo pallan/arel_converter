@@ -34,6 +34,11 @@ describe ArelConverter::Translator::Finder do
       finder = %Q{self.payments.first(:joins => [:payment_method], :conditions => ["payment_methodable_type = 'ChequePaymentMethod' AND amount > 0"])}
       expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{self.payments.joins(:payment_method).where("payment_methodable_type = 'ChequePaymentMethod' AND amount > 0").first})
     end
+
+    it '' do
+      finder = %Q{MyModel.first(:conditions=> conditions_array, :order => "tickets.weight desc, tickets.sort_date asc", :include => INCLUDE, :joins => joins)}
+      expect(ArelConverter::Translator::Finder.translate(finder)).to eq(%Q{MyModel.where(conditions_array).order("tickets.weight desc, tickets.sort_date asc").includes(INCLUDE).joins(joins).first})
+    end
   end
 
 

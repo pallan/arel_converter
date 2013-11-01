@@ -31,10 +31,9 @@ module ArelConverter
       end
 
       def process_call(exp)
-        # puts "#{@depth} #{exp.inspect}"
         if valid_arel_method?(exp[1])
           @depth ||= 0
-          @depth += 1
+          @depth += 1 if @depth == 0
         end
         super
       end
