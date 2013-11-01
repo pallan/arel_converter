@@ -39,23 +39,18 @@ module ArelConverter
                         end.compact
         Formatter.alert(file, replacements, failures) unless (replacements.nil? || replacements.empty?) && failures.empty?
 
-        #update_file(file, new_ar_finders) #unless new_ar_finders.empty?
+        update_file(file, replacements) unless replacements.empty?
       end
     end
 
     def update_file(file, line_replacements)
-      new_lines = []
-      f = File.new(file)
-      f.each do |line|
-        line_replacements.each do |new_line|
-          line.gsub!(new_line[0], new_line[1]) if line.include?(new_line[0])
-        end
-        new_lines << line.chomp
+      contents = File.read(file)
+      line_replacements.each do |new_line|
+        contents.gsub!(new_line[0], new_line[1])
       end
-      f.close
 
       File.open(file, 'w') do |f|
-        f.puts new_lines.join("\n")
+        f.puts contents
       end
     end
 
