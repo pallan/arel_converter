@@ -14,49 +14,56 @@ module ArelConverter
       end
 
       def process_call(exp)
-        if exp.size > 3
-          old_options = exp.pop
-          old_options.shift
-          new_options = [:hash]
-          new_scopes  = [:hash]
-          old_options.each_slice(2) do |key,value|
-            if option_nodes.include?(key)
-              new_options += [key, value]
-            else
-              new_scopes += [key, value]
-            end
-          end
-          @scopes  = Options.translate(Sexp.from_array(new_scopes)) unless new_scopes == [:hash]
-          @options = process(Sexp.from_array(new_options)) unless new_options == [:hash]
-        end
+        #if exp.size > 3
+          #old_options = exp.pop
+          #old_options.shift # 
+          #new_options = [:hash]
+          #new_scopes  = [:hash]
+          #old_options.each_slice(2) do |key,value|
+            #if option_nodes.include?(key)
+              #new_options += [key, value]
+            #else
+              #new_scopes += [key, value]
+            #end
+          #end
+          #@scopes  = Options.translate(Sexp.from_array(new_scopes)) unless new_scopes == [:hash]
+          #@options = process(Sexp.from_array(new_options)) unless new_options == [:hash]
+        #end
         super
       end
 
       def process_hash(exp) # :nodoc:
-        result = []
+        @options = []
+        scopes = [:hash]
 
         until exp.empty?
-          lhs = process(exp.shift)
+          lhs = exp.shift
           rhs = exp.shift
-          t = rhs.first
-          rhs = process rhs
-          rhs = "(#{rhs})" unless [:lit, :str].include? t # TODO: verify better!
+          if option_nodes.include?(lhs)
+            lhs = process(lhs)
+            t   = rhs.first
+            rhs = process rhs
+            rhs = "(#{rhs})" unless [:lit, :str].include? t # TODO: verify better!
 
-          result << "#{lhs.sub(':','')}: #{rhs}"
+            @options << "#{lhs.sub(':','')}: #{rhs}"
+          else
+            scopes += [lhs, rhs]
+          end
         end
-
-        return result.empty? ? "{}" : "#{result.join(', ')}"
+        @options = nil if @options.empty?
+        @scopes  = Options.translate(Sexp.from_array(scopes)) unless scopes == [:hash]
+        return ''
       end
 
       def post_processing(new_scope)
         new_scope.gsub!(/has_(many|one)\((.*)\)$/, 'has_\1 \2')
-        @scopes = nil if @scopes.nil? || @scopes.empty?
         [new_scope, format_scope(@scopes), @options].compact.join(', ')
       end
 
-   protected
-      
+    protected
+
       def format_scope(scopes)
+        return nil if scopes.nil? || scopes.empty?
         "-> { #{scopes.strip} }" unless scopes.nil? || scopes.empty?
       end
 
