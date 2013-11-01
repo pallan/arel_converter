@@ -26,7 +26,7 @@ module ArelConverter
               new_scopes += [key, value]
             end
           end
-          @scopes  = Options.translate(Sexp.from_array(new_scopes)).strip unless new_scopes == [:hash]
+          @scopes  = Options.translate(Sexp.from_array(new_scopes)) unless new_scopes == [:hash]
           @options = process(Sexp.from_array(new_options)) unless new_options == [:hash]
         end
         super
@@ -51,7 +51,13 @@ module ArelConverter
       def post_processing(new_scope)
         new_scope.gsub!(/has_(many|one)\((.*)\)$/, 'has_\1 \2')
         @scopes = nil if @scopes.nil? || @scopes.empty?
-        [new_scope, @scopes, @options].compact.join(', ')
+        [new_scope, format_scope(@scopes), @options].compact.join(', ')
+      end
+
+   protected
+      
+      def format_scope(scopes)
+        "-> { #{scopes.strip} }" unless scopes.nil? || scopes.empty?
       end
 
       def option_nodes
