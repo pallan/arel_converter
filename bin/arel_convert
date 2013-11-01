@@ -4,12 +4,19 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'arel_converter'
 
-puts "== Checking Associations"
-ArelConverter::Association.new(ARGV.first).run
+command = ARGV.shift
 
-puts "\n== Checking Scopes"
-ArelConverter::Scope.new(ARGV.first).run
+if command == 'assoc' || command == 'all'
+  puts "== Checking Associations"
+  ArelConverter::Association.new(ARGV.first).run
+end
 
-puts "\n== Checking Associations"
-ArelConverter::ActiveRecordFinder.new(ARGV.first).run
+if command == 'scope' || command == 'all'
+  puts "\n== Checking Scopes"
+  ArelConverter::Scope.new(ARGV.first).run
+end
 
+if command == 'finder' || command == 'all'
+  puts "\n== Checking Associations"
+  ArelConverter::ActiveRecordFinder.new(ARGV.first).run
+end

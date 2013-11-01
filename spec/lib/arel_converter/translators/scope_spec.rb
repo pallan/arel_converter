@@ -91,6 +91,15 @@ describe ArelConverter::Translator::Scope do
     end
 
     context "with lambdas" do
+      it 'should not change an existing Arel call (very much)' do
+        scope = %Q{scope :for_state, lambda {|state| where(:state => state.to_s.upcase) }}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :for_state, lambda { |state| where(state: state.to_s.upcase) }})
+      end
+      it 'should not change existing chained Arel calls (very much)' do
+        scope = %Q{scope :for_state, lambda {|state| where(:state => state.to_s.upcase).order(:name) }}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :for_state, lambda { |state| where(state: state.to_s.upcase).order(:name) }})
+      end
+
       it 'should stay on a single line' do
         scope = %Q{scope :my_scope, lambda{|vendor| {:include => :vendor_purchase_order, :conditions => ["purchase_orders.vendor_id = ?", vendor.id]}}}
         expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :my_scope, lambda { |vendor| includes(:vendor_purchase_order).where("purchase_orders.vendor_id = ?", vendor.id) }})

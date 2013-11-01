@@ -30,6 +30,15 @@ module ArelConverter
         end
       end
 
+      def process_call(exp)
+        # puts "#{@depth} #{exp.inspect}"
+        if valid_arel_method?(exp[1])
+          @depth ||= 0
+          @depth += 1
+        end
+        super
+      end
+
       def hash_to_arel(lhs, rhs)
         case lhs
         when ':conditions'
@@ -135,20 +144,32 @@ module ArelConverter
 
       private
 
-      def setup_logger(log_level = :info)
-        logging = Logging::Logger[self]
-        layout = Logging::Layouts::Pattern.new(:pattern => "[%d, %c, %5l] %m\n")
-
-        stdout = Logging::Appenders.stdout
-        stdout.level = log_level
-
-        #file = Logging::Appenders::File.new("./log/converters.log")
-        #file.layout = layout
-        #file.level = :debug
-
-        logging.add_appenders(stdout)
-        logging
+      def valid_arel_method?(m)
+        %w[bind
+          create_with
+          eager_load
+          extending
+          from
+          group
+          having
+          includes
+          joins
+          limit
+          lock
+          none
+          offset
+          order
+          preload
+          readonly
+          references
+          reorder
+          reverse_order
+          select
+          distinct
+          uniq
+          where].include?(m.to_s)
       end
+
     end
 
   end
