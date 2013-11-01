@@ -3,21 +3,7 @@ module ArelConverter
     class Association < Base
 
       def process_call(exp)
-        #if exp.size > 3
-          #old_options = exp.pop
-          #old_options.shift # 
-          #new_options = [:hash]
-          #new_scopes  = [:hash]
-          #old_options.each_slice(2) do |key,value|
-            #if option_nodes.include?(key)
-              #new_options += [key, value]
-            #else
-              #new_scopes += [key, value]
-            #end
-          #end
-          #@scopes  = Options.translate(Sexp.from_array(new_scopes)) unless new_scopes == [:hash]
-          #@options = process(Sexp.from_array(new_options)) unless new_options == [:hash]
-        #end
+        @association_type ||= exp[1]
         super
       end
 
@@ -34,7 +20,7 @@ module ArelConverter
             rhs = process rhs
             rhs = "(#{rhs})" unless [:lit, :str].include? t # TODO: verify better!
 
-            @options << "#{lhs.sub(':','')}: #{rhs}"
+            @options << format_for_hash(lhs,rhs)
           else
             scopes += [lhs, rhs]
           end
@@ -45,7 +31,7 @@ module ArelConverter
       end
 
       def post_processing(new_scope)
-        new_scope.gsub!(/has_(many|one)\((.*)\)$/, 'has_\1 \2')
+        new_scope.gsub!(/has_(many|one|and_belongs_to_many)\((.*)\)$/, 'has_\1 \2')
         [new_scope, format_scope(@scopes), @options].compact.join(', ')
       end
 
@@ -68,7 +54,10 @@ module ArelConverter
           s(:lit, :source),
           s(:lit, :source_type),
           s(:lit, :through),
-          s(:lit, :validate)
+          s(:lit, :validate),
+          s(:lit, :association_foreign_key),
+          s(:lit, :autosave),
+          s(:lit, :join_table)
         ]
       end
 

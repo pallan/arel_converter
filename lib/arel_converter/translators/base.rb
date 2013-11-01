@@ -23,6 +23,10 @@ module ArelConverter
         source
       end
 
+      def format_for_hash(key, value)
+        key =~ /\A:/ ? "#{key.sub(':','')}: #{value}" : "#{key} => #{value}"
+      end
+
     private
 
       def setup_logger(log_level = :info)

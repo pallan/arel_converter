@@ -40,21 +40,17 @@ module ArelConverter
       end
 
       def hash_to_arel(lhs, rhs)
-        case lhs
-        when ':conditions'
+        key = lhs.sub(':','')
+        case key
+        when 'conditions'
           key = 'where'
-        when ':include'
+        when 'include'
           key = 'includes'
-        else
-          key = lhs.sub(':','')
+        when 'none', 'reverse_order'
+          return key
         end
-        logger.debug("KEY: #{key}(#{rhs})")
         rhs = rhs.gsub(/\A\[(.*)\]\z/, '\1').gsub(/\A\{(.*)\}\z/, '\1')
         "#{key}(#{rhs})"
-      end
-
-      def format_for_hash(key, value)
-        key =~ /\A:/ ? "#{key.sub(':','')}: #{value}" : "#{key} => #{value}"
       end
 
       # Have to override super class to get the overridden LINE_LENGTH

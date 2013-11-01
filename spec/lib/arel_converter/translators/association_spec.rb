@@ -2,6 +2,24 @@ require 'spec_helper'
 
 describe ArelConverter::Translator::Association do
   
+  context 'parsing has_and_belongs_to_many' do
+    #-  has_and_belongs_to_many :groups, :uniq => true
+#-  has_and_belongs_to_many :products, :uniq => true
+#-  has_and_belongs_to_many :affiliate_sales_orders
+  
+    it 'should not change if there are no options' do
+      finder = %Q{has_and_belongs_to_many :posts}
+      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_and_belongs_to_many :posts})
+    end
+
+    it 'should translate options' do
+      finder = %Q{has_and_belongs_to_many :posts, :uniq => true}
+      expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_and_belongs_to_many :posts, -> { uniq(true) }})
+    end
+
+  end
+
+
   context 'parsing has_one' do
     it 'should ignore if no options set' do
       finder = %Q{has_one :posts}
