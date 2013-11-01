@@ -20,7 +20,14 @@ module ArelConverter
 
       def post_processing(new_scope)
         new_scope.gsub!(/scope\((.*)\)$/, 'scope \1')
-        new_scope += ", #{@options.strip}"
+        new_scope += format_options(@options)
+      end
+
+    protected
+
+      def format_options(options)
+        return if options.nil? || options.empty?
+        ", " + (options.include?('lambda') ? options : "-> { #{options.strip} }")
       end
 
     end
