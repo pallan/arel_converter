@@ -4,6 +4,12 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'arel_converter'
 
-converter = ArelConverter::Association.new(ARGV.first)
-converter.run
+puts "== Checking Associations"
+ArelConverter::Association.new(ARGV.first).run
+
+puts "\n== Checking Scopes"
+ArelConverter::Scope.new(ARGV.first).run
+
+puts "\n== Checking Associations"
+ArelConverter::ActiveRecordFinder.new(ARGV.first).run
 
