@@ -32,6 +32,7 @@ module ArelConverter
 
       def post_processing(new_scope)
         new_scope.gsub!(/has_(many|one|and_belongs_to_many)\((.*)\)$/, 'has_\1 \2')
+        new_scope.gsub!(/belongs_to\((.*)\)$/, 'belongs_to \1')
         [new_scope, format_scope(@scopes), @options].compact.join(', ')
       end
 
@@ -44,6 +45,9 @@ module ArelConverter
 
       def option_nodes
         [
+          s(:lit, :counter_cache),
+          s(:lit, :polymorphic),
+          s(:lit, :touch),
           s(:lit, :as),
           s(:lit, :autosave),
           s(:lit, :class_name),

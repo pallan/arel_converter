@@ -1,12 +1,21 @@
 require 'spec_helper'
 
 describe ArelConverter::Translator::Association do
-  
+
+  context 'parsing belongs_to' do
+    it 'should not change if there are no options' do
+      assoc = %Q{belongs_to :post}
+      expect(ArelConverter::Translator::Association.translate(assoc)).to eq(%Q{belongs_to :post})
+    end
+
+    it 'should translate the options' do
+      assoc = %Q{belongs_to :post, :class_name => "Article", :foreign_key => "article_id"}
+      expect(ArelConverter::Translator::Association.translate(assoc)).to eq(%Q{belongs_to :post, class_name: "Article", foreign_key: "article_id"})
+    end
+  end
+
   context 'parsing has_and_belongs_to_many' do
-    #-  has_and_belongs_to_many :groups, :uniq => true
-#-  has_and_belongs_to_many :products, :uniq => true
-#-  has_and_belongs_to_many :affiliate_sales_orders
-  
+
     it 'should not change if there are no options' do
       finder = %Q{has_and_belongs_to_many :posts}
       expect(ArelConverter::Translator::Association.translate(finder)).to eq(%Q{has_and_belongs_to_many :posts})
