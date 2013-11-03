@@ -1,13 +1,18 @@
 module ArelConverter
   class Base
-    def initialize(path = './')
+    def initialize(type, path)
+      @parse_type = type
       @path       = path
       @parser     = RubyParser.new
       @translator = Ruby2Ruby.new
     end
 
-    def run
-      Dir[File.join(@path, 'app/**/*.rb')].each do |file|
+    def run!
+      @parse_type == :file ? parse_file(@path) : parse_directory(path)
+    end
+
+    def parse_directory(path)
+      Dir[File.join(path, 'app/**/*.rb')].each do |file|
         begin
           parse_file(file)
         rescue => e

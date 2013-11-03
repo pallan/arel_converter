@@ -6,6 +6,7 @@ require 'logging'
 $:.unshift(File.dirname(__FILE__))
 
 require File.join('arel_converter', 'base')
+require File.join('arel_converter', 'command')
 require File.join('arel_converter', 'formatter')
 require File.join('arel_converter', 'active_record_finder')
 require File.join('arel_converter', 'scope')
