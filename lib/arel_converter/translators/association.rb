@@ -10,7 +10,7 @@ module ArelConverter
       def process_hash(exp) # :nodoc:
         @options = []
         scopes = [:hash]
-
+        
         until exp.empty?
           lhs = exp.shift
           rhs = exp.shift
@@ -18,7 +18,7 @@ module ArelConverter
             lhs = process(lhs)
             t   = rhs.first
             rhs = process rhs
-            rhs = "(#{rhs})" unless [:lit, :str].include? t # TODO: verify better!
+            rhs = "(#{rhs})" unless [:lit, :str, :true, :false].include? t # TODO: verify better!
 
             @options << format_for_hash(lhs,rhs)
           else

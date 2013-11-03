@@ -12,6 +12,11 @@ describe ArelConverter::Translator::Association do
       assoc = %Q{belongs_to :post, :class_name => "Article", :foreign_key => "article_id"}
       expect(ArelConverter::Translator::Association.translate(assoc)).to eq(%Q{belongs_to :post, class_name: "Article", foreign_key: "article_id"})
     end
+
+    it 'should translate polymorphic correctly' do
+      assoc = %Q{belongs_to :post, :polymorphic => true}
+      expect(ArelConverter::Translator::Association.translate(assoc)).to eq(%Q{belongs_to :post, polymorphic: true})
+    end
   end
 
   context 'parsing has_and_belongs_to_many' do
