@@ -2,7 +2,7 @@ module ArelConverter
   class Association < Base
 
     def grep_matches_in_file(file)
-      raw_named_scopes = `grep -r "^\s*has_" #{file}`
+      raw_named_scopes = `grep -r "^\s*has_\\|belongs_to" #{file}`
       raw_named_scopes.split("\n")
     end
 
