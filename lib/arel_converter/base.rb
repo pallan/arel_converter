@@ -35,7 +35,6 @@ module ArelConverter
 
     def process_lines(lines)
       lines.map do |line|
-        line = line.gsub("#{file}:",'').strip
         begin
           next unless verify_line(line)
           [line, process_line(line)]

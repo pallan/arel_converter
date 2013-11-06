@@ -4,7 +4,6 @@ describe ArelConverter::Base do
 
   let(:file_converter) { ArelConverter::Base.new('spec/fixtures/my/files/source.rb') }
   let(:dir_converter)  {ArelConverter::Base.new('spec/fixtures/my') }
-  let(:files) { Dir['spec/fixtures/**/*.rb'].map {|file| file } }
 
   describe 'executes against the proper type' do
     it 'should execute against a single file' do
@@ -20,6 +19,8 @@ describe ArelConverter::Base do
   end
 
   describe 'executing against a directory' do
+    let(:files) { Dir['spec/fixtures/**/*.rb'].map {|file| file } }
+
     it 'should execute against all ruby files in the supplied directory' do
       files.each do |f|
         expect(dir_converter).to receive(:parse_file).with(f)
@@ -55,8 +56,29 @@ describe ArelConverter::Base do
       file_converter.run!
     end
 
-
   end
 
+  describe 'processing lines' do
+    let(:converter) { ArelConverter::Base.new('.') }
+    let(:lines) { ['Good Line', 'Invalid Line', 'Pretty Line'] }
 
+    before do
+      allow(converter).to receive(:process_line).and_return('PROCESSED')
+    end
+
+    it 'should return only lines that are valid ' do
+      allow(converter).to receive(:verify_line).and_return(true, false, true)
+      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+    end
+
+    it 'should return only lines that do not raise a SyntaxError' do
+      allow(converter).to receive(:process_line).with('Invalid Line').and_raise(SyntaxError)
+      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+    end
+
+    it 'should only return lines that do not raise other exceptions' do
+      allow(converter).to receive(:process_line).with('Invalid Line').and_raise(RuntimeError)
+      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+    end
+  end
 end
