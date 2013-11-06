@@ -2,21 +2,61 @@ require 'spec_helper'
 
 describe ArelConverter::Base do
 
+  let(:file_converter) { ArelConverter::Base.new('spec/fixtures/my/files/source.rb') }
+  let(:dir_converter)  {ArelConverter::Base.new('spec/fixtures/my') }
+  let(:files) { Dir['spec/fixtures/**/*.rb'].map {|file| file } }
+
   describe 'executes against the proper type' do
     it 'should execute against a single file' do
-      base = ArelConverter::Base.new('spec/fixtures/my/files/source.rb')
-      expect(base).to receive(:parse_file).with('spec/fixtures/my/files/source.rb')
-      expect(base).not_to receive(:parse_directory)
-      base.run!
+      expect(file_converter).to receive(:parse_file).with('spec/fixtures/my/files/source.rb')
+      expect(file_converter).not_to receive(:parse_directory)
+      file_converter.run!
     end
 
     it 'should execute against a directory' do
-      base = ArelConverter::Base.new('spec/fixtures/my/files')
-      expect(base).to receive(:parse_directory).with('spec/fixtures/my/files')
-      base.run!
+      expect(dir_converter).to receive(:parse_directory).with('spec/fixtures/my')
+      dir_converter.run!
     end
   end
 
+  describe 'executing against a directory' do
+    it 'should execute against all ruby files in the supplied directory' do
+      files.each do |f|
+        expect(dir_converter).to receive(:parse_file).with(f)
+      end
+      dir_converter.run!
+    end
+  end
+
+  describe 'parsing a file' do
+
+    before do
+      @matched_lines = ['a','b']
+      file_converter.stub(:update_file)
+    end
+
+    it "should grep the file for matches and do nothing if there are none" do
+      expect(file_converter).to receive(:grep_matches_in_file).and_return([])
+      expect(file_converter).to_not receive(:process_lines)
+      file_converter.run!
+    end
+
+    it 'should process any lines that are found' do
+      expect(file_converter).to receive(:grep_matches_in_file).and_return(@matched_lines)
+      expect(file_converter).to receive(:process_lines).with(@matched_lines).and_return([])
+      file_converter.run!
+    end
+
+     it 'should pass to the formatter any results' do
+      results = ['result 1', 'result 2']
+      allow(file_converter).to receive(:grep_matches_in_file).and_return(@matched_lines)
+      allow(file_converter).to receive(:process_lines).with(@matched_lines).and_return(results)
+      expect(ArelConverter::Formatter).to receive(:alert).with('spec/fixtures/my/files/source.rb',results)
+      file_converter.run!
+    end
+
+
+  end
 
 
 end

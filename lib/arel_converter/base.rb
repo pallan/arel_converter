@@ -7,12 +7,11 @@ module ArelConverter
     end
 
     def run!
-      File.directory?(@path) ?  parse_directory(@path) :
-                                parse_file(@path)
+      File.directory?(@path) ? parse_directory(@path) : parse_file(@path)
     end
 
     def parse_directory(path)
-      Dir[File.join(path, 'app/**/*.rb')].each do |file|
+      Dir[File.join(path, '**/*.rb')].each do |file|
         begin
           parse_file(file)
         rescue => e
@@ -25,27 +24,29 @@ module ArelConverter
 
       lines_to_process = grep_matches_in_file(file)
 
-      unless lines_to_process.empty?
+      return if lines_to_process.empty?
 
-        failures = []
+      replacements = process_lines(lines_to_process)
 
-        replacements =  lines_to_process.map do |line|
-                          line = line.gsub("#{file}:",'').strip
-                          begin
-                            next unless verify_line(line)
-                            [line, process_line(line)]
-                          rescue SyntaxError => e
-                            failures << "SyntaxError when evaluatiing options for #{line}"
-                            nil
-                          rescue Exception => e
-                            failures << "#{e.class} #{e.message} when evaluating options for \"#{line}\"\n#{e.backtrace.first}"
-                            nil
-                          end
-                        end.compact
-        Formatter.alert(file, replacements, failures) unless (replacements.nil? || replacements.empty?) && failures.empty?
+      Formatter.alert(file, replacements) unless (replacements.nil? || replacements.empty?)
 
-        update_file(file, replacements) unless replacements.empty?
-      end
+      update_file(file, replacements) unless replacements.empty?
+    end
+
+    def process_lines(lines)
+      lines.map do |line|
+        line = line.gsub("#{file}:",'').strip
+        begin
+          next unless verify_line(line)
+          [line, process_line(line)]
+        rescue SyntaxError => e
+          failures << "SyntaxError when evaluatiing options for #{line}"
+          nil
+        rescue Exception => e
+          failures << "#{e.class} #{e.message} when evaluating options for \"#{line}\"\n#{e.backtrace.first}"
+          nil
+        end
+      end.compact
     end
 
     def update_file(file, line_replacements)
