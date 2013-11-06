@@ -1,14 +1,14 @@
 module ArelConverter
   class Base
-    def initialize(type, path)
-      @parse_type = type
+    def initialize(path)
       @path       = path
       @parser     = RubyParser.new
       @translator = Ruby2Ruby.new
     end
 
     def run!
-      @parse_type == :file ? parse_file(@path) : parse_directory(path)
+      File.directory?(@path) ?  parse_directory(@path) :
+                                parse_file(@path)
     end
 
     def parse_directory(path)
@@ -57,6 +57,10 @@ module ArelConverter
       File.open(file, 'w') do |f|
         f.puts contents
       end
+    end
+
+    def grep_matches_in_file(file)
+      [] # abstract method overriden by subclasses
     end
 
   protected
