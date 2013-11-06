@@ -2,7 +2,7 @@ module ArelConverter
   class Scope < Base
 
     def grep_matches_in_file(file)
-      raw_named_scopes = `grep -H -r "^\s*scope\s*:" #{file}`
+      raw_named_scopes = `grep -h -r "^\s*scope\s*:" #{file}`
       raw_named_scopes.split("\n")
     end
 
