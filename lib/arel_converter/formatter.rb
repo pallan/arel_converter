@@ -12,9 +12,9 @@ module ArelConverter
     # Show an upgrade alert to the user
     def self.alert(title, culprits, errors=nil)
       if RbConfig::CONFIG['host_os'].downcase =~ /mswin|windows|mingw/
-        Formatter.basic_alert(title, culprits, errors)
+        Formatter.basic_alert(title, culprits)
       else
-        Formatter.color_alert(title, culprits, errors)
+        Formatter.color_alert(title, culprits)
       end
     end
 

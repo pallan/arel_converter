@@ -7,8 +7,8 @@ module ArelConverter
     attr_accessor :options
 
     def initialize(*args)
-      @translators = args.shift.split(',')
-      @translators = ['scope','finder','association'] if @translators == ['all']
+      args << '--help' if args.empty?
+      @translators = ['scope','finder','association']
       @options = {}
       parse_argv(*args)
     end
@@ -16,17 +16,17 @@ module ArelConverter
     def run!
       if @translators.include?('association')
         puts "== Checking Associations"
-        ArelConverter::Association.new(options[:type], options[:path]).run!
+        ArelConverter::Association.new(options[:path]).run!
       end
 
       if @translators.include?('scope')
         puts "\n== Checking Scopes"
-        ArelConverter::Scope.new(options[:type], options[:path]).run!
+        ArelConverter::Scope.new(options[:path]).run!
       end
 
       if @translators.include?('finder')
         puts "\n== Checking Finders"
-        ArelConverter::ActiveRecordFinder.new(options[:type], options[:path]).run!
+        ArelConverter::ActiveRecordFinder.new(options[:path]).run!
       end
     end
 
@@ -34,20 +34,14 @@ module ArelConverter
 
     def parse_argv(*args)
       OptionParser.new do |opts|
-        options[:directory] = '.'
-        opts.on('-d', '--directory DIRECTORY', 'Specify the directory to parse') do |v|
-          options[:path] = v
-          options[:type] = :directory
-        end
-        opts.on('-f', '--file FILE', 'Specify a single file to run against') do |v| 
-          options[:path] = v
-          options[:type] = :file
-        end
+        opts.banner = "Usage: arel_convert [options] [PATH]"
+        opts.on('-t', '--translators [scope,finder,association]', Array, 'Specify specific translators') { |list| @translators = list }
         opts.on('-h', '--help', 'Display this screen' ) do
           puts opts
           exit 0
         end
       end.parse!(args)
+      options[:path] = args.empty? ? '.' : args.shift
     end
 
   end
