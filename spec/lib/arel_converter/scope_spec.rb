@@ -4,7 +4,7 @@ describe ArelConverter::Scope do
 
   let(:converter) { ArelConverter::Scope.new('spec/fixtures/grep_matching.rb') }
 
-  let(:valid_lines) { ["  scope :active"] }
+  let(:valid_lines) { ["  scope :active, :conditions => ['status NOT IN (?)', ['closed','cancelled']]"] }
   let(:invalid_lines) { ["    scope = 'Test cases'"] }
 
   it 'should find all the valid lines from a file' do
