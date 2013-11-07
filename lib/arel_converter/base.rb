@@ -2,8 +2,6 @@ module ArelConverter
   class Base
     def initialize(path)
       @path       = path
-      @parser     = RubyParser.new
-      @translator = Ruby2Ruby.new
     end
 
     def run!
@@ -15,7 +13,7 @@ module ArelConverter
         begin
           parse_file(file)
         rescue => e
-          Formatter.alert(file, [], e.message)
+          Formatter.alert(file, [])
         end
       end
     end

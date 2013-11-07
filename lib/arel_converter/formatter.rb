@@ -20,23 +20,22 @@ module ArelConverter
 
     # Show an upgrade alert to the user.  If we're on Windows, we can't
     # use terminal colors, hence this method.
-    def self.basic_alert(title, culprits, errors=nil)
+    def self.basic_alert(title, culprits)
       puts "** " + title
-      puts "\t** " + error if error
       Array(culprits).each do |c|
-        puts "\t- #{c}"
+        puts c.valid? ? "  FROM: #{c.old_content}\n    TO: #{c.new_content}\n" :
+                        "** ERROR - #{c.error}"
       end
       puts
     end
 
     # Show a colorful alert to the user
-    def self.color_alert(file, culprits, errors=nil)
+    def self.color_alert(file, culprits )
       puts "#{RED}#{BOLD}#{file}#{CLEAR}"
-      Array(errors).each do |error|
-        puts "#{CYAN}#{BOLD}  - #{error}#{CLEAR}"
-      end
       Array(culprits).each do |c|
-        puts c.is_a?(Array) ? "#{YELLOW}  FROM: #{c[0]}\n    TO: #{c[1]}\n" : "#{YELLOW}  #{c[0]}\n"
+        puts c.valid? ? "#{YELLOW}  FROM: #{c.old_content}\n    TO: #{c.new_content}\n" :
+                        "#{CYAN}#{BOLD}  - #{c.error}#{CLEAR}"
+
       end
     ensure
       puts "#{CLEAR}"
