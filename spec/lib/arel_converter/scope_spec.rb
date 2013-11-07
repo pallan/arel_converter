@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ArelConverter::Scope do
-  
+
   let(:converter) { ArelConverter::Scope.new('spec/fixtures/grep_matching.rb') }
 
   let(:valid_lines) { ["  scope :active"] }
@@ -26,7 +26,7 @@ describe ArelConverter::Scope do
   end
 
   describe '#process_lines' do
-    it 'should pass of translation to the Association translator' do
+    it 'should pass of translation to the Scope translator' do
       expect(ArelConverter::Translator::Scope).to receive(:translate).with('scope :active').and_return('scope(:active)')
       converter.process_line('scope :active')
     end

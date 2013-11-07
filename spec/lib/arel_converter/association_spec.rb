@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ArelConverter::Association do
-  
+
   let(:converter) { ArelConverter::Association.new('spec/fixtures/grep_matching.rb') }
 
   let(:valid_lines) { ["  has_many :posts", "  has_and_belongs_to_many :articles", "  has_one :author", "  belongs_to :blog"] }

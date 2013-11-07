@@ -18,4 +18,21 @@ class GrepMatching # < ActiveRecord::Base
     scope = 'My Scope'
   end
 
+  # Finders
+  def finder_calls
+    Model.find(:all)
+
+    Model.find(:first)
+
+    Model.find(:all, :conditions => {:active => true})
+
+    Model.all(:conditions => {:active => false})
+
+    Model.first(:conditions => {:active => false})
+
+    # should not be found
+    Model.all
+    Model.first
+  end
+
 end
