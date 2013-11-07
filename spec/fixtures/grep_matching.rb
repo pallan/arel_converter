@@ -11,7 +11,7 @@ class GrepMatching # < ActiveRecord::Base
   end
 
   # Scopes
-  scope :active
+  scope :active, :conditions => ['status NOT IN (?)', ['closed','cancelled']]
 
   # this comment on scope should not show show up
   def scoping
