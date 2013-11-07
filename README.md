@@ -91,8 +91,6 @@ tests/specs are coupled to ActiveRecord finders then alot of them are
 going to break. The converters make no attempt to update tests/specs at
 this time. I've toyed with it and didn't get very far.
 
-This 
-
 
 ## Contributing
 
