@@ -31,7 +31,7 @@ describe ArelConverter::Base do
   end
 
   describe 'executing against a directory' do
-    let(:files) { Dir['spec/fixtures/**/*.rb'].map {|file| file } }
+    let(:files) { Dir['spec/fixtures/my/**/*.rb'].map {|file| file } }
 
     it 'should execute against all ruby files in the supplied directory' do
       files.each do |f|

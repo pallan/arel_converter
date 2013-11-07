@@ -10,8 +10,6 @@ module ArelConverter
       ArelConverter::Translator::Association.translate(line)
     end
 
-  protected
-
     def verify_line(line)
       parser = RubyParser.new
       sexp   = parser.process(line)
@@ -21,4 +19,3 @@ module ArelConverter
   end
 
 end
-
