@@ -31,9 +31,14 @@ describe ArelConverter::Base do
 
   describe 'parsing a file' do
 
+    let(:matched_lines) { ['a','b'] }
+    let(:results) { ['result 1', 'result 2'] }
+
     before do
-      @matched_lines = ['a','b']
       file_converter.stub(:update_file)
+      allow(file_converter).to receive(:grep_matches_in_file).and_return(matched_lines)
+      allow(file_converter).to receive(:process_lines).with(matched_lines).and_return(results)
+      allow(ArelConverter::Formatter).to receive(:alert)
     end
 
     it "should grep the file for matches and do nothing if there are none" do
@@ -43,16 +48,26 @@ describe ArelConverter::Base do
     end
 
     it 'should process any lines that are found' do
-      expect(file_converter).to receive(:grep_matches_in_file).and_return(@matched_lines)
-      expect(file_converter).to receive(:process_lines).with(@matched_lines).and_return([])
+      expect(file_converter).to receive(:grep_matches_in_file).and_return(matched_lines)
+      expect(file_converter).to receive(:process_lines).with(matched_lines).and_return([])
       file_converter.run!
     end
 
-     it 'should pass to the formatter any results' do
-      results = ['result 1', 'result 2']
-      allow(file_converter).to receive(:grep_matches_in_file).and_return(@matched_lines)
-      allow(file_converter).to receive(:process_lines).with(@matched_lines).and_return(results)
+    it 'should pass to the formatter any results' do
       expect(ArelConverter::Formatter).to receive(:alert).with('spec/fixtures/my/files/source.rb',results)
+      file_converter.run!
+    end
+
+    it 'should update the file' do
+      allow(file_converter).to receive(:process_lines).with(matched_lines).and_return(results)
+      expect(file_converter).to receive(:update_file).with('spec/fixtures/my/files/source.rb',results)
+      file_converter.run!
+    end
+
+    it 'should not output or update if there are no results' do
+      allow(file_converter).to receive(:process_lines).and_return([])
+      expect(ArelConverter::Formatter).to_not receive(:alert)
+      expect(file_converter).to_not receive(:update_file)
       file_converter.run!
     end
 

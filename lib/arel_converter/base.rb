@@ -28,9 +28,10 @@ module ArelConverter
 
       replacements = process_lines(lines_to_process)
 
-      Formatter.alert(file, replacements) unless (replacements.nil? || replacements.empty?)
-
-      update_file(file, replacements) unless replacements.empty?
+      unless (replacements.nil? || replacements.empty?)
+        Formatter.alert(file, replacements)
+        update_file(file, replacements)
+      end
     end
 
     def process_lines(lines)
