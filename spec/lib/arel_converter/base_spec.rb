@@ -2,8 +2,20 @@ require 'spec_helper'
 
 describe ArelConverter::Base do
 
+
+  let(:converter) { ArelConverter::Base.new('.') }
   let(:file_converter) { ArelConverter::Base.new('spec/fixtures/my/files/source.rb') }
-  let(:dir_converter)  {ArelConverter::Base.new('spec/fixtures/my') }
+  let(:dir_converter)  { ArelConverter::Base.new('spec/fixtures/my') }
+
+  let(:replacement_good) { ArelConverter::Replacement.new('Good Line', 'PROCESSED') }
+  let(:replacemetn_bad) { ArelConverter::Replacement.new('Pretty Line', 'PROCESSED') }
+  let(:replacement_error) { 
+    r = ArelConverter::Replacement.new('Invalid Line')
+    r.error = "This is no good!"
+    r
+  }
+  let(:replacements) { [replacement_good, replacemetn_bad] }
+  let(:replacements_with_errors) { [replacement_good, replacement_error, replacemetn_bad] }
 
   describe 'executes against the proper type' do
     it 'should execute against a single file' do
@@ -74,7 +86,6 @@ describe ArelConverter::Base do
   end
 
   describe 'processing lines' do
-    let(:converter) { ArelConverter::Base.new('.') }
     let(:lines) { ['Good Line', 'Invalid Line', 'Pretty Line'] }
 
     before do
@@ -83,17 +94,29 @@ describe ArelConverter::Base do
 
     it 'should return only lines that are valid ' do
       allow(converter).to receive(:verify_line).and_return(true, false, true)
-      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+      expect(converter.process_lines(lines)).to eq(replacements)
     end
 
     it 'should return only lines that do not raise a SyntaxError' do
       allow(converter).to receive(:process_line).with('Invalid Line').and_raise(SyntaxError)
-      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+      expect(converter.process_lines(lines)).to eq(replacements_with_errors)
     end
 
     it 'should only return lines that do not raise other exceptions' do
       allow(converter).to receive(:process_line).with('Invalid Line').and_raise(RuntimeError)
-      expect(converter.process_lines(lines)).to eq([['Good Line', 'PROCESSED'], ['Pretty Line', 'PROCESSED']])
+      expect(converter.process_lines(lines)).to eq(replacements_with_errors)
     end
+  end
+
+  describe 'updating files' do
+
+    it 'should do replacement on the proper lines' do
+      file_handle = double
+      allow(File).to receive(:read).and_return("Good Line\n\nNext Line\n\nThird Line\n\nPretty Line")
+      expect(File).to receive(:open).and_yield(file_handle)
+      expect(file_handle).to receive(:puts).with("PROCESSED\n\nNext Line\n\nThird Line\n\nPROCESSED")
+      converter.update_file('my/file.rb', replacements_with_errors)
+    end
+
   end
 end

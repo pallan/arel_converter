@@ -36,23 +36,23 @@ module ArelConverter
 
     def process_lines(lines)
       lines.map do |line|
+        r = Replacement.new(line)
         begin
           next unless verify_line(line)
-          [line, process_line(line)]
+          r.new_content = process_line(line)
         rescue SyntaxError => e
-          failures << "SyntaxError when evaluatiing options for #{line}"
-          nil
+          r.error = "SyntaxError when evaluating options for #{line}"
         rescue Exception => e
-          failures << "#{e.class} #{e.message} when evaluating options for \"#{line}\"\n#{e.backtrace.first}"
-          nil
+          r.error = "#{e.class} #{e.message} when evaluating options for \"#{line}\"\n#{e.backtrace.first}"
         end
+        r
       end.compact
     end
 
     def update_file(file, line_replacements)
       contents = File.read(file)
-      line_replacements.each do |new_line|
-        contents.gsub!(new_line[0], new_line[1])
+      line_replacements.each do |r|
+        contents.gsub!(r.old_content, r.new_content) if r.valid?
       end
 
       File.open(file, 'w') do |f|
