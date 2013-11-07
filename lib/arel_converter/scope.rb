@@ -11,8 +11,6 @@ module ArelConverter
       new_scope.gsub(/scope\((.*)\)$/, 'scope \1')
     end
 
-  protected
-
     def verify_line(line)
       parser = RubyParser.new
       sexp   = parser.process(line)

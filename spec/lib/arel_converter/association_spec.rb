@@ -2,14 +2,14 @@ require 'spec_helper'
 
 describe ArelConverter::Association do
   
-  let(:converter) { ArelConverter::Association.new('spec/fixtures/associations.rb') }
+  let(:converter) { ArelConverter::Association.new('spec/fixtures/grep_matching.rb') }
 
   let(:valid_lines) { ["  has_many :posts", "  has_and_belongs_to_many :articles", "  has_one :author", "  belongs_to :blog"] }
   let(:invalid_lines) { ["    has_many = 'Test cases'"] }
   let(:all_lines) { valid_lines + invalid_lines }
 
   it 'should find all the valid lines from a file' do
-    expect(converter.grep_matches_in_file('spec/fixtures/associations.rb')).to eq(all_lines)
+    expect(converter.grep_matches_in_file('spec/fixtures/grep_matching.rb')).to eq(all_lines)
   end
 
   describe 'verify lines' do
