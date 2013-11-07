@@ -16,17 +16,17 @@ module ArelConverter
     def run!
       if @translators.include?('association')
         puts "== Checking Associations"
-        ArelConverter::Association.new(options[:path]).run!
+        ArelConverter::Association.new(options[:path], options).run!
       end
 
       if @translators.include?('scope')
         puts "\n== Checking Scopes"
-        ArelConverter::Scope.new(options[:path]).run!
+        ArelConverter::Scope.new(options[:path], options).run!
       end
 
       if @translators.include?('finder')
         puts "\n== Checking Finders"
-        ArelConverter::ActiveRecordFinder.new(options[:path]).run!
+        ArelConverter::ActiveRecordFinder.new(options[:path], options).run!
       end
     end
 
@@ -36,6 +36,7 @@ module ArelConverter
       OptionParser.new do |opts|
         opts.banner = "Usage: arel_convert [options] [PATH]"
         opts.on('-t', '--translators [scope,finder,association]', Array, 'Specify specific translators') { |list| @translators = list }
+        opts.on('--dry-run', 'Run a simulated update, files will not be updated' ) { |v| options[:dry_run] = true }
         opts.on('-h', '--help', 'Display this screen' ) do
           puts opts
           exit 0

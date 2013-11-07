@@ -76,6 +76,14 @@ describe ArelConverter::Base do
       file_converter.run!
     end
 
+    it 'should not update the files if configured not to' do
+      allow(file_converter).to receive(:process_lines).with(matched_lines).and_return(results)
+      expect(ArelConverter::Formatter).to receive(:alert)
+      expect(file_converter).to_not receive(:update_file)
+      file_converter.options[:dry_run] = true
+      file_converter.run!
+    end
+
     it 'should not output or update if there are no results' do
       allow(file_converter).to receive(:process_lines).and_return([])
       expect(ArelConverter::Formatter).to_not receive(:alert)

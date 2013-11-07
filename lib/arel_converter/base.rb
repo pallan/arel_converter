@@ -1,7 +1,11 @@
 module ArelConverter
   class Base
-    def initialize(path)
-      @path       = path
+
+    attr_accessor :options
+
+    def initialize(path, options = {})
+      @path    = path
+      @options = {dry_run: false}.merge(options)
     end
 
     def run!
@@ -28,7 +32,7 @@ module ArelConverter
 
       unless (replacements.nil? || replacements.empty?)
         Formatter.alert(file, replacements)
-        update_file(file, replacements)
+        update_file(file, replacements) unless @options[:dry_run]
       end
     end
 
