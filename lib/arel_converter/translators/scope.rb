@@ -16,7 +16,11 @@ module ArelConverter
 
       def format_options(options)
         return if options.nil? || options.empty?
-        ", " + (options.include?('lambda') ? options : "-> { #{options.strip} }")
+        ", " + (includes_lambda?(options) ? options : "-> { #{options.strip} }")
+      end
+
+      def includes_lambda?(source)
+        source.include?('lambda') || source.include?('->')
       end
 
     end

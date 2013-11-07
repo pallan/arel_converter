@@ -91,6 +91,11 @@ describe ArelConverter::Translator::Scope do
     end
 
     context "with lambdas" do
+      it 'should handle stubby lambdas' do
+        scope = %Q{scope :for_state, -> { where(:state => state.to_s.upcase) }}
+        expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :for_state, -> { where(state: state.to_s.upcase) }})
+      end
+
       it 'should not change an existing Arel call (very much)' do
         scope = %Q{scope :for_state, lambda {|state| where(:state => state.to_s.upcase) }}
         expect(ArelConverter::Translator::Scope.translate(scope)).to eq(%Q{scope :for_state, lambda { |state| where(state: state.to_s.upcase) }})

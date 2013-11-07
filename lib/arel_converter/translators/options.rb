@@ -61,13 +61,14 @@ module ArelConverter
 
         args = case args
                when 0 then
-                 " ||"
+                 iter = '->' # no args? let's use a stubby
+                 ''
                else
                  a = process(args)[1..-2]
                  a = " |#{a}|" unless a.empty?
                  a
                end
-
+        
         b, e = if iter == "END" then
                  [ "{", "}" ]
                else
