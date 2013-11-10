@@ -1,5 +1,7 @@
 # ArelConverter
 
+[![Build Status](https://travis-ci.org/pallan/arel_converter.png?branch=master)](https://travis-ci.org/pallan/arel_converter)
+
 This gem add the 'arel_convert' command to your system. When run against
 a directory (or a single file) it will find and convert scopes,
 associations and ActiveRecord finders into Rails 4 compatible Arel
